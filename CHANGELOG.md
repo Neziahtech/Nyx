@@ -6,6 +6,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- **Upgraded vitest to 3.2.7** (from 2.1.9). Config and APIs needed no
+  changes; the suite (86 tests), lint, typecheck, and the production build
+  all pass on it, and CI's Node 20 stays supported. This clears the old
+  Vitest-UI / Vite / tinypool advisories; the freshly reviewed advisory
+  table is in docs/security.md. ESLint stays on 8.57.1: `eslint-config-next`
+  for Next 14 does not accept ESLint 9, so the ESLint/Next majors move
+  together.
+
+## [0.2.0] - 2026-10-23
+
 ## [0.2.0] - 2026-10-23
 
 Self-custody: Nyx now creates and holds its own keys, so no browser
