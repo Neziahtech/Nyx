@@ -120,21 +120,25 @@ component state as soon as encryption completes.
 - Hardware-signer and multisetup support; the encrypted blob is the only
   key-protection primitive.
 
-## Reviewed advisories (2026-10-23)
+## Reviewed advisories (re-checked 2026-10-23 after the vitest 3 upgrade)
 
-`npm audit` currently reports advisories that cannot be fixed without majors
-beyond the approved dependency set. Each was reviewed rather than ignored:
+`npm audit` reports advisories that cannot be fixed without majors beyond
+the approved dependency set (Next 16 for the `next`/`postcss` chain,
+Next 15 for the `glob` chain, vitest 5 for `@vitest/mocker` — and those
+majors also require ESLint 9, which `eslint-config-next` for Next 14 does
+not accept). Each was reviewed rather than ignored:
 
-| Advisory (pkg)                                                                 | Severity      | Assessment                                                                                                                                     |
-| ------------------------------------------------------------------------------ | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Image Optimizer DoS via `remotePatterns` (`next` 14.2.35)                      | critical      | Not applicable — Nyx uses no `next/image` remote patterns and configures no `remotePatterns`; fixed upstream when Next 15 lands via Dependabot |
-| `toml` prototype pollution / recursion (transitive via `@stellar/stellar-sdk`) | high          | Not applicable on used paths — Nyx never calls federation/stellar.toml parsing; only Horizon reads and tx submission                           |
-| Vitest UI server / Vite dev-server / tinypool / glob CLI issues                | high–critical | Dev-only; Vitest UI is never started in CI or by users; upgrade to vitest 3 tracked by Dependabot                                              |
-| PostCSS stringify XSS                                                          | high          | Dev-only build dependency; no untrusted CSS is processed                                                                                       |
+| Advisory (pkg)                                                                       | Severity | Assessment                                                                                                                                               |
+| ------------------------------------------------------------------------------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Image Optimizer / Server Components DoS, RCEs, cache issues (`next` 14.2.35)         | critical | Not applicable — Nyx configures no `remotePatterns` and no rewrites; fixes land only with Next 16                                                        |
+| `toml` prototype pollution / recursion (transitive via `@stellar/stellar-sdk`)       | high     | Not applicable on used paths — Nyx never calls federation/stellar.toml parsing; only Horizon reads and tx submission                                     |
+| `@vitest/mocker` path traversal / manual-mock injection (vitest 3.2.7)               | moderate | Dev-only and unused — Nyx never uses `vi.mock` redirect/mocker APIs; CI only runs `vitest run`; the fix requires vitest 5 (Node ≥22)                     |
+| `glob` CLI command injection (via `eslint-config-next` → `@next/eslint-plugin-next`) | high     | Not applicable — the advisory is in the glob **CLI** entry point (`-c/--cmd`); no glob CLI is invoked; pinned to eslint 8 / Next 14, clears with Next 15 |
+| PostCSS stringify XSS                                                                | high     | Dev-only build dependency; no untrusted CSS is processed; clears only with Next 16                                                                       |
 
 CI runs `npm audit --audit-level=high` as a **non-blocking advisory** step
-until the Dependabot majors are merged, per the decision recorded in
-CHANGELOG. The gate should be re-locked after each upgrade lands.
+until the Next 15/16 major lands, per the decision recorded in CHANGELOG.
+The gate should be re-locked after each upgrade chain completes.
 
 ## Open considerations (good contributions)
 
