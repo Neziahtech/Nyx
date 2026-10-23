@@ -57,5 +57,11 @@ export function validateEnv(source: Record<string, string | undefined>): Env {
  * The validated environment for the running app.
  *
  * Throws at import time (startup) if the environment is invalid.
+ *
+ * Note: Next.js only inlines `NEXT_PUBLIC_*` variables into client bundles
+ * when accessed as literal member expressions, so the value is read that
+ * way here instead of passing the whole `process.env` object.
  */
-export const env: Env = validateEnv(typeof process === "undefined" ? {} : process.env);
+export const env: Env = validateEnv({
+  NEXT_PUBLIC_STELLAR_NETWORK: process.env.NEXT_PUBLIC_STELLAR_NETWORK,
+});
