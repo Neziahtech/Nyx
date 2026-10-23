@@ -11,9 +11,7 @@ import { stellarConfig } from "../lib/stellar/config";
  * explained so users know why spendable is lower than total.
  */
 export function BalanceList() {
-  const { balances, reserve, status, notFunded, publicKey } = useWallet();
-
-  if (status === "disconnected") return null;
+  const { balances, reserve, notFunded, publicKey } = useWallet();
 
   if (notFunded && publicKey) {
     return (

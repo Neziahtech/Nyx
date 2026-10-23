@@ -6,7 +6,6 @@ import { QRCodeSVG } from "qrcode.react";
 import { Card, CardTitle } from "./ui/Card";
 import { Button } from "./ui/Button";
 import { useWallet } from "./WalletProvider";
-import { ConnectPrompt } from "./ConnectPrompt";
 import { stellarConfig, explorerAccountUrl } from "../lib/stellar/config";
 import { BRAND_ROSE, SURFACE_WHITE } from "../lib/theme";
 
@@ -18,7 +17,7 @@ export function ReceiveCard() {
   const { publicKey } = useWallet();
   const [copied, setCopied] = useState(false);
 
-  if (!publicKey) return <ConnectPrompt />;
+  if (!publicKey) return null; // pre-unlock render; the gate routes locked sessions away
 
   const copy = async () => {
     try {

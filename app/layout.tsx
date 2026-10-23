@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 
 import "./globals.css";
 import { Header } from "../components/Header";
+import { WalletGate } from "../components/WalletGate";
 import { WalletProvider } from "../components/WalletProvider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -19,8 +20,10 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     <html lang="en" className={inter.variable}>
       <body className="min-h-screen font-sans">
         <WalletProvider>
-          <Header />
-          <main className="mx-auto w-full max-w-3xl px-4 pb-16 pt-8">{children}</main>
+          <WalletGate>
+            <Header />
+            <main className="mx-auto w-full max-w-3xl px-4 pb-16 pt-8">{children}</main>
+          </WalletGate>
         </WalletProvider>
       </body>
     </html>

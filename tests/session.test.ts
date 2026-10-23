@@ -9,6 +9,7 @@ import {
   isUnlocked,
   lockSession,
   signTransactionXdr,
+  subscribeSession,
   touchSession,
   unlockSession,
 } from "../lib/wallet/session";
@@ -100,6 +101,46 @@ describe("inactivity auto-lock", () => {
     lockSession();
     expect(() => touchSession()).not.toThrow();
     expect(isUnlocked()).toBe(false);
+  });
+});
+
+describe("subscribeSession", () => {
+  afterEach(() => {
+    lockSession();
+    vi.useRealTimers();
+  });
+
+  it("notifies on unlock and on lock", () => {
+    const calls: boolean[] = [];
+    const stop = subscribeSession(() => calls.push(isUnlocked()));
+    unlockSession(SOURCE_KEYS.secret());
+    lockSession();
+    expect(calls).toEqual([true, false]);
+    stop();
+    unlockSession(SOURCE_KEYS.secret());
+    expect(calls).toEqual([true, false]);
+  });
+
+  it("notifies when the inactivity timer locks the session", () => {
+    vi.useFakeTimers();
+    const listener = vi.fn();
+    const stop = subscribeSession(listener);
+    unlockSession(SOURCE_KEYS.secret());
+    listener.mockClear(); // ignore the unlock notification
+    vi.advanceTimersByTime(INACTIVITY_TIMEOUT_MS);
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect(isUnlocked()).toBe(false);
+    stop();
+  });
+
+  it("keeps locking even when a listener throws", () => {
+    const stop = subscribeSession(() => {
+      throw new Error("bad listener");
+    });
+    unlockSession(SOURCE_KEYS.secret());
+    expect(() => lockSession()).not.toThrow();
+    expect(isUnlocked()).toBe(false);
+    stop();
   });
 });
 

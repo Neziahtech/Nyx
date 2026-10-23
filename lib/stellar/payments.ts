@@ -22,7 +22,8 @@ import {
  * Building send transactions and reading payment history.
  *
  * Nyx never signs here: builders return an unsigned transaction whose XDR
- * is handed to Freighter, and the signed result is submitted to Horizon.
+ * is signed by the unlocked session in `lib/wallet/`, and the signed result
+ * is submitted to Horizon.
  */
 
 export interface SendParams {
@@ -118,7 +119,7 @@ export async function fetchBaseFee(): Promise<bigint> {
 }
 
 /**
- * Ask Freighter-signed XDR back and submit it to Horizon.
+ * Submit a transaction XDR that has already been signed to Horizon.
  *
  * @param signedXdr Transaction XDR already signed by the user's wallet.
  * @returns The transaction hash on success.

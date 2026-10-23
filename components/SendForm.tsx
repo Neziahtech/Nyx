@@ -6,7 +6,6 @@ import { Card, CardTitle } from "./ui/Card";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { useWallet } from "./WalletProvider";
-import { ConnectPrompt } from "./ConnectPrompt";
 import {
   buildSendTransaction,
   estimateFeeXlm,
@@ -23,8 +22,10 @@ import { explorerTxUrl, stellarConfig } from "../lib/stellar/config";
 import { MIN_REFRESH_INTERVAL_MS } from "../lib/stellar/client";
 
 /**
- * Send flow: form -> validation -> review (with fee estimate) -> Freighter
- * signature -> Horizon submission -> result with explorer link.
+ * Send flow: form -> validation -> review (with fee estimate) -> in-memory
+ * signature from the unlocked session -> Horizon submission -> result with
+ * explorer link. Nothing is signed until the user confirms on the review
+ * card.
  */
 export function SendForm() {
   const {
@@ -67,8 +68,6 @@ export function SendForm() {
     selected && reserve && selected.balance.assetCode === "native"
       ? subtractAmounts(selected.balance.total, reserve.totalReserved)
       : (selected?.balance.total ?? "0");
-
-  if (!publicKey) return <ConnectPrompt />;
 
   const validateFields = (): boolean => {
     const errs: Record<string, string> = {};
@@ -212,14 +211,14 @@ export function SendForm() {
           </Button>
           <Button onClick={() => void confirmSend()} disabled={stage === "sending"}>
             {stage === "sending"
-              ? "Waiting for Freighter…"
-              : `Confirm on ${stellarConfig.name}`}
+              ? "Signing and submitting…"
+              : `Confirm and send on ${stellarConfig.name}`}
           </Button>
         </div>
         <p className="mt-3 text-xs text-dim">
-          You will approve this transaction in the Freighter popup. If the recipient has
-          no trustline for this asset, the network will reject the payment and Nyx will
-          explain why.
+          Nyx signs with the key stored in this browser only after you confirm here. If
+          the recipient has no trustline for this asset, the network will reject the
+          payment and Nyx will explain why.
         </p>
       </Card>
     );

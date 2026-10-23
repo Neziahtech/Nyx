@@ -2,15 +2,12 @@
 
 import { BalanceList } from "../components/BalanceList";
 import { HistoryList } from "../components/HistoryList";
-import { ConnectPrompt } from "../components/ConnectPrompt";
 import { Button } from "../components/ui/Button";
 import { useWallet } from "../components/WalletProvider";
 
-/** Dashboard: connect state, balances with reserves, and recent activity. */
+/** Dashboard: balances with reserves, and recent activity. */
 export default function DashboardPage() {
-  const { publicKey, status, error, refresh } = useWallet();
-
-  if (!publicKey) return <ConnectPrompt />;
+  const { status, error, refresh } = useWallet();
 
   return (
     <div className="flex flex-col gap-5">

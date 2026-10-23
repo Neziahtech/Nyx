@@ -28,6 +28,34 @@ let keypair: Keypair | null = null;
 let inactivityTimer: ReturnType<typeof setTimeout> | null = null;
 let watchersAttached = false;
 
+/** Listener fired whenever the locked/unlocked state changes. */
+export type SessionListener = () => void;
+
+const listeners = new Set<SessionListener>();
+
+/**
+ * Subscribe to lock/unlock transitions (including the inactivity auto-lock).
+ *
+ * @returns A function that removes the subscription.
+ */
+export function subscribeSession(listener: SessionListener): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function notify(): void {
+  for (const listener of listeners) {
+    try {
+      listener();
+    } catch (e) {
+      // A faulty listener must not break locking or other subscribers.
+      console.error(e);
+    }
+  }
+}
+
 /** Whether the decrypted key is currently held in memory. */
 export function isUnlocked(): boolean {
   return keypair !== null;
@@ -48,6 +76,7 @@ export function unlockSession(secretKey: string): void {
   if (!isValidSecretKey(secretKey)) throw new InvalidSecretKeyError();
   keypair = Keypair.fromSecret(secretKey);
   touchSession();
+  notify();
 }
 
 /**
@@ -55,11 +84,13 @@ export function unlockSession(secretKey: string): void {
  * already locked.
  */
 export function lockSession(): void {
+  const wasUnlocked = keypair !== null;
   keypair = null;
   if (inactivityTimer !== null) {
     clearTimeout(inactivityTimer);
     inactivityTimer = null;
   }
+  if (wasUnlocked) notify();
 }
 
 /**

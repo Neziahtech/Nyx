@@ -21,7 +21,7 @@ export default function NyxError({
       <h2 className="text-lg font-semibold text-ink">Something went wrong</h2>
       <p className="mt-2 text-sm text-dim">
         Nyx hit an unexpected error on this page. Your funds are unaffected — transactions
-        only happen after you approve them in Freighter.
+        only happen after you confirm them on the review screen.
       </p>
       <div className="mt-4">
         <Button onClick={reset}>Try again</Button>

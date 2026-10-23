@@ -7,7 +7,6 @@ import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { Badge } from "./ui/Badge";
 import { useWallet } from "./WalletProvider";
-import { ConnectPrompt } from "./ConnectPrompt";
 import {
   buildAddTrustlineTransaction,
   buildRemoveTrustlineTransaction,
@@ -30,7 +29,7 @@ export function TrustlineManager() {
   const [error, setError] = useState<string | null>(null);
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
 
-  if (!publicKey) return <ConnectPrompt />;
+  if (!publicKey) return null; // pre-unlock render; the gate routes locked sessions away
 
   const issued = balances.filter((b) => b.assetCode !== "native");
 
@@ -181,7 +180,7 @@ export function TrustlineManager() {
               onClick={() => void addTrustline()}
               disabled={pending !== null || status === "loading"}
             >
-              {pending === "add" ? "Waiting for Freighter…" : "Add trustline"}
+              {pending === "add" ? "Signing and submitting…" : "Add trustline"}
             </Button>
           </div>
         </div>
