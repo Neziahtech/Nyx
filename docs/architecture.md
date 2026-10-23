@@ -12,8 +12,16 @@ lives in `app/` and `components/` and holds no business logic.
 │ app/            Next.js routes (page shells only)  │
 │ components/     feature components + ui/ tokens    │
 ├────────────────────────────────────────────────────┤
-│ WalletProvider  shared session: connect, balances, │
-│                 sign-and-submit, change watching   │
+│ WalletProvider  shared session: keystore state,    │
+│                 balances, sign-and-submit          │
+│ WalletGate      /create & /unlock redirect rules   │
+├────────────────────────────────────────────────────┤
+│ lib/wallet/     key material lives HERE, nowhere   │
+│                 else                               │
+│   keystore.ts   PBKDF2 + AES-GCM encrypt/decrypt   │
+│   storage.ts    encrypted blob in localStorage     │
+│   session.ts    in-memory key, 5-min auto-lock     │
+│   wallet.ts     create/import/unlock/logout flows  │
 ├────────────────────────────────────────────────────┤
 │ lib/stellar/    pure Stellar logic (no React)      │
 │   config.ts     network/env selection              │
@@ -22,17 +30,19 @@ lives in `app/` and `components/` and holds no business logic.
 │   payments.ts   send-tx building, history paging   │
 │   trustlines.ts changeTrust building               │
 │   validation.ts input checks, exact decimals       │
-│   wallet.ts     Freighter bridge (connect/sign)    │
 ├────────────────────────────────────────────────────┤
 │ lib/env.ts      startup schema validation          │
-│ @stellar/stellar-sdk · @stellar/freighter-api      │
+│ @stellar/stellar-sdk (Web Crypto for keystore)     │
 └────────────────────────────────────────────────────┘
 ```
 
 ## Data flow (send, as the representative case)
 
-1. `WalletProvider` holds the connected public key (from Freighter) and the
-   `AccountResponse` loaded via `account.ts` → `client.ts` → Horizon.
+1. `WalletProvider` mirrors `lib/wallet/` state: whether a keystore blob
+   exists, whether the session is unlocked, and the current public key.
+   `WalletGate` routes to `/create` (no wallet) or `/unlock` (locked), and
+   follows the 5-minute auto-lock live. The `AccountResponse` is loaded via
+   `account.ts` → `client.ts` → Horizon.
 2. `SendForm` collects input and calls `validation.ts` for immediate
    feedback. It never builds XDR itself.
 3. On "Review", `payments.fetchBaseFee()` + `estimateFeeXlm()` produce the
@@ -40,8 +50,9 @@ lives in `app/` and `components/` and holds no business logic.
 4. On "Confirm", `payments.buildSendTransaction()` re-validates everything
    (destination, amount vs. spendable, memo bytes), builds an **unsigned**
    transaction bound to the network passphrase from `config.ts`.
-5. `wallet.signWithWallet()` passes the XDR to Freighter; the user approves
-   in the extension. Nyx receives signed XDR only — never a secret key.
+5. `session.signTransactionXdr()` signs with the in-memory key — the XDR is
+   first re-parsed under the configured network passphrase, and the session
+   refuses to sign while locked. The key never leaves `lib/wallet/`.
 6. `payments.submitSignedTransaction()` posts to Horizon; success returns
    the tx hash (linked to the explorer), failures are translated by
    `describeSubmitError()` into actionable plain language — e.g. the
@@ -51,9 +62,10 @@ lives in `app/` and `components/` and holds no business logic.
 
 ## Key invariants
 
-- **UI never talks to Horizon or Freighter directly.** All network and
-  wallet access goes through `lib/stellar/`, so behavior is testable and
-  the same logic will serve later phases.
+- **UI never talks to Horizon directly, and only `lib/wallet/` touches key
+  material.** All network access goes through `lib/stellar/`, all crypto and
+  secret handling through `lib/wallet/`, so behavior is testable and the
+  same logic will serve later phases.
 - **Validation is centralized** in `validation.ts` and re-applied inside
   transaction builders — the UI cannot bypass it.
 - **Every Horizon call** carries an explicit timeout (`client.ts`), so a
@@ -74,8 +86,8 @@ lives in `app/` and `components/` and holds no business logic.
 - **Anchor off-ramping (`lib/anchors/`)**: SEP-24/SEP-6 clients are new
   `lib/` modules talking to anchor HTTP APIs (not Horizon), reusing
   `client.ts`'s timeout policy and `env.ts`'s schema style. Auth flows
-  (SEP-10) live in `wallet.ts`-adjacent code since they use Freighter
-  signing.
+  (SEP-10) build a challenge transaction and sign it through
+  `lib/wallet/session.ts`, the same in-memory path the send flow uses.
 - Neither phase should require touching `validation.ts`, `account.ts`, or
   the `ui/` primitives — that is the signal the seams are right.
 
@@ -84,4 +96,7 @@ lives in `app/` and `components/` and holds no business logic.
 Unit tests mock the `client.ts` Horizon instance, so `payments.ts` tests
 build real XDR against the test network passphrase without ever touching
 the network. `validation.ts` and `env.ts` are pure and exhaustively
-covered. Manual testnet steps live in `docs/testing-checklist.md`.
+covered. `keystore.ts` tests assert round-trip, wrong-password and
+tamper rejection, and absence of plaintext in the blob; `session.ts` tests
+cover lock/clear semantics and the inactivity timer with fake timers.
+Manual testnet steps live in `docs/testing-checklist.md`.

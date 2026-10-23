@@ -1,9 +1,10 @@
 # Nyx
 
-A soft, clean Stellar wallet. Nyx starts as a simple wallet — connect, see
-balances, send and receive XLM and custom assets, manage trustlines, and
-review your transaction history — and is structured so bill payments and
-fiat off-ramping (via Stellar anchors) can plug in later without a rewrite.
+A soft, clean Stellar wallet. Nyx starts as a simple wallet — create or
+import a key, see balances, send and receive XLM and custom assets, manage
+trustlines, and review your transaction history — and is structured so bill
+payments and fiat off-ramping (via Stellar anchors) can plug in later without
+a rewrite.
 
 Currently targets **Stellar testnet**; switching to mainnet is a one-line
 config change.
@@ -11,18 +12,25 @@ config change.
 <!-- screenshot: dashboard -->
 <!-- screenshot: send flow -->
 
-## Why Freighter?
+## How keys work
 
-Nyx never generates or holds secret keys. Signing goes through
-[Freighter](https://www.freighter.app/), the Stellar browser extension, so
-your key stays inside the extension and this app only ever asks it to sign
-transactions you reviewed. An app that holds your secret key is a liability;
-an app that asks your wallet to sign is not. Read more in
-[docs/security.md](docs/security.md).
+Nyx is self-custody and needs no browser extension. On **Create wallet** it
+generates a keypair in your browser and shows the secret key exactly once for
+backup; **Import wallet** accepts an existing secret key. Either way the key
+is encrypted with your password — AES-256-GCM with a PBKDF2-SHA256-derived
+key, 600,000 iterations, and a random salt and IV — and only the encrypted
+blob is stored, in localStorage. The decrypted key lives in memory while
+unlocked and is destroyed after 5 minutes of inactivity, when the tab closes,
+when you press **Lock**, and entirely when you **Log out** (which deletes the
+stored wallet). Transactions are signed locally, only after you confirm the
+review screen. Read more in [docs/security.md](docs/security.md).
+
+> Nyx has not yet had a professional security review. Treat it as
+> experimental and use testnet only until one has happened.
 
 ## Quick start
 
-Requirements: Node.js 18.17+ and the Freighter extension.
+Requirements: Node.js 18.17+.
 
 ```bash
 npm ci
@@ -30,12 +38,13 @@ cp .env.example .env.local   # defaults are already in .env; override if needed
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and click
-**Connect Freighter**.
+Open [http://localhost:3000](http://localhost:3000). With no wallet stored
+yet you'll land on **/create**: generate a keypair (or import a secret key),
+save the one-time secret key backup, and set an unlock password.
 
 ### Getting test funds
 
-1. Create a testnet account in Freighter (switch its network to _Testnet_).
+1. Create your wallet as above (testnet is the default network).
 2. Copy your public key from Nyx's **Receive** page.
 3. Fund it with [Friendbot](https://friendbot.stellar.org/?addr=YOUR_KEY) —
    the dashboard links directly when it detects an unfunded account.

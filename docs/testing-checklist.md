@@ -1,47 +1,70 @@
 # Manual testing checklist (testnet)
 
-A walkthrough to run against Stellar testnet before each release. You need
-the Freighter extension with testnet enabled, and a browser with the Nyx dev
-server running (`npm run dev`).
+A walkthrough to run against Stellar testnet before each release. You need a
+browser with the Nyx dev server running (`npm run dev`) — no extensions.
+Nyx is self-custody: it creates its own keys, encrypts them with a password
+you choose, and signs locally.
 
-## 1. Setup and funding
+## 1. Create a wallet and fund it
 
-- [ ] In Freighter, add/create a testnet account and copy its public key.
-- [ ] Open the dashboard → **Connect Freighter** → approve the access prompt.
+- [ ] Open the dashboard with no wallet stored → you are redirected to
+      **/create**.
+- [ ] **Create a new wallet** → the screen shows the public key and the
+      secret key exactly once, with the backup warning.
+- [ ] The **Continue** button stays disabled until "I've saved my secret
+      key" is ticked. Save the key somewhere safe for step 9.
+- [ ] Choose a password: short (<12 char) input is rejected; the strength
+      meter responds; mismatched confirmation blocks the button.
+- [ ] **Create wallet** shows "Encrypting your wallet…" for a second or
+      two, then lands on the dashboard with the address in the header.
 - [ ] The dashboard shows the unfunded empty state with a
-      **Fund this account with Friendbot** link.
-- [ ] Click the Friendbot link; it returns account JSON. Refresh Nyx —
-      the balance appears (~10,000 XLM).
+      **Fund this account with Friendbot** link; after clicking it and
+      refreshing, the balance appears (~10,000 XLM).
+- [ ] Check DevTools → Application → localStorage: only `nyx.keystore.v1`
+      exists, and its JSON contains no `S…` secret key.
 
-## 2. Send XLM between two accounts
+## 2. Lock and unlock
 
-- [ ] In Freighter, create a **second** testnet account and fund it too.
+- [ ] Click **Lock** → immediately routed to **/unlock**, which shows the
+      stored account's short address.
+- [ ] Wrong password → generic "Could not unlock this wallet with that
+      password." message; no detail about why.
+- [ ] Correct password → back on the dashboard, balances reload.
+- [ ] Reload the page (F5) → routed to /unlock again (the key is
+      memory-only).
+- [ ] Leave the tab idle for 5+ minutes → auto-lock routes to /unlock.
+
+## 3. Send XLM between two accounts
+
+- [ ] Open a second browser profile (or log out and import a second key —
+      see step 9) and fund it too.
 - [ ] In Nyx: Send → destination = account 2's `G…` address, asset = XLM,
       amount = `25`, memo = `hello nyx` → **Review payment**.
 - [ ] Confirm the review screen shows the right destination, amount, memo,
-      and a fee of ~0.0000100 XLM.
-- [ ] Confirm → approve in Freighter → success screen shows a tx hash and a
-      working explorer link.
+      and a fee of ~0.0000100 XLM. Nothing is signed until you confirm.
+- [ ] **Confirm and send** → success screen shows a tx hash and a working
+      explorer link.
 - [ ] Dashboard activity lists the sent payment in deep neutral with the
-      memo; account 2 (after connecting it) shows it received in muted green.
+      memo; account 2 shows it received in muted green.
 - [ ] Available XLM reflects the reserve note (1 XLM base + 0.5 per
       trustline).
 
-## 3. Negative send checks
+## 4. Negative send checks
 
 - [ ] Destination `g…lowercase` or wrong length → inline validation error,
       button blocked.
 - [ ] Amount `1.12345678` (8 decimals) or `0` or `-3` → inline error.
 - [ ] Amount above spendable balance → error names the spendable amount.
 - [ ] Memo of 29+ characters → byte-length error.
-- [ ] At the review step, click **Reject** inside Freighter → Nyx shows
-      "Signing was cancelled in Freighter", no error spam, back to review.
+- [ ] Lock the wallet (5-minute idle) while the send form is open → routed
+      to /unlock; after unlocking, nothing was signed and the form is
+      intact.
 
-## 4. Add a trustline and a custom asset
+## 5. Add a trustline and a custom asset
 
 - [ ] Trustlines page → add a code like `TEST` with an issuer you control
-      (create a throwaway asset account via Freighter + Friendbot and issue
-      to it, or use a known test asset issuer).
+      (create a throwaway asset account with Nyx in another profile +
+      Friendbot and issue to it, or use a known test asset issuer).
 - [ ] Confirm the trustline appears in the list with balance 0 and a
       working **Remove** (zero balance) flow.
 - [ ] From the issuer account, send some `TEST` to your main account.
@@ -52,35 +75,48 @@ server running (`npm run dev`).
       first" message (not a raw XDR error).
 - [ ] Account 2 adds the trustline, receive works, history updates.
 
-## 5. Receive
+## 6. Receive
 
-- [ ] Receive page: public key matches Freighter's, copy button gives
-      "Copied!", QR scans into a Stellar app as the same key.
+- [ ] Receive page: public key matches the header and the one shown at
+      creation; copy button gives "Copied!"; QR scans into a Stellar app as
+      the same key.
 - [ ] Send to that address from account 2 → arrives, activity shows the
       received row in green.
 
-## 6. History and pagination
+## 7. History and pagination
 
 - [ ] With >20 payments, **Load more** appends older rows without
       duplicates and eventually stops.
 - [ ] Each row links to the right transaction in the explorer.
 
-## 7. Network/account switching
+## 8. Log out and import (backup round-trip)
 
-- [ ] Switch Freighter to a different account → Nyx detects it and re-reads
-      balances without a manual reconnect.
-- [ ] Switch Freighter's network to **Public** while Nyx runs testnet →
-      Nyx shows a network-mismatch error on the next action and tells the
-      user to switch back.
+- [ ] Click **Log out** → confirmation dialog warns the wallet will be
+      deleted; the danger button stays disabled until "I have saved my
+      secret key" is ticked.
+- [ ] Confirm → routed to /create and localStorage no longer has
+      `nyx.keystore.v1`.
+- [ ] **Import an existing secret key** with the key saved in step 1 and a
+      new password → the same address reappears with its balances intact.
+- [ ] Import with a malformed key (wrong prefix/length) → inline error,
+      nothing stored.
 
-## 8. Environment guard
+## 9. Environment guard
 
 - [ ] Set `NEXT_PUBLIC_STELLAR_NETWORK=devnet` in `.env.local`, restart →
       app fails immediately with the "Supported networks: testnet, mainnet"
       message.
 
-## 9. Mainnet switch (config only)
+## 10. Mainnet switch (config only)
 
 - [ ] Set `NEXT_PUBLIC_STELLAR_NETWORK=mainnet`, rebuild; Horizon URL,
       passphrase, and explorer links all follow (no Friendbot link on
-      mainnet).
+      mainnet). The stored keystore blob is network-independent — the same
+      wallet unlocks on either network.
+
+## 11. Content Security Policy
+
+- [ ] With a production build (`npm run build && npm start`), check
+      DevTools → Network → document response headers: the
+      `Content-Security-Policy` header is present and the app works with it
+      (no console CSP violations on any page).

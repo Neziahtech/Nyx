@@ -114,9 +114,10 @@ read-only summary helper).
 ## 12. E2E smoke test with Playwright 🟡
 
 **Description:** Add a CI job that boots `npm run build && npm start` and
-verifies: page loads, connect prompt appears, env-validation failure path,
-mocked Horizon balance render. Freighter itself can be stubbed via
-`window.stellar` injection.
+verifies: page loads, the `/create` redirect appears for a fresh browser,
+env-validation failure path, mocked Horizon balance render. The wallet
+can be stubbed by seeding `localStorage` with an encrypted keystore and
+unlocking it in the test.
 **Files:** `e2e/smoke.spec.ts` (new), `.github/workflows/ci.yml`,
 `package.json` (devDep approval needed in the issue thread first).
 **Acceptance criteria:** runs headless, deterministic, skipped on forks

@@ -23,7 +23,7 @@ What you expected instead.
 ## Environment
 
 - Nyx version / commit:
-- Browser (+ Freighter version):
+- Browser:
 - Network (`NEXT_PUBLIC_STELLAR_NETWORK`): testnet / mainnet
 - OS:
 

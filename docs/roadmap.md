@@ -6,7 +6,8 @@ keeps Stellar logic in `lib/` behind small, testable modules.
 
 ## Phase 1 — Wallet foundation (this release)
 
-Non-custodial Stellar wallet on testnet: Freighter connection, balances
+Non-custodial Stellar wallet on testnet: a self-custody wallet whose keys
+are generated in the browser and stored only password-encrypted, balances
 with reserve clarity, XLM and custom-asset sends with a review step,
 receive with QR, trustline management, and paginated history.
 
@@ -23,8 +24,8 @@ Planned approach:
 memo}` — deliberately close to the existing `SendParams` shape so
   `payments.buildSendTransaction()` is reused unchanged.
 - **Execution is still user-approved.** Nyx proposes transactions; each
-  due bill produces a review card that goes through the same Freighter
-  sign flow. No unattended signing, ever.
+  due bill produces a review card that goes through the same confirm-then
+  -sign flow. No unattended signing, ever.
 - **Scheduling** runs when the app is open (a "bills due" banner on the
   dashboard), not as a server — keeping the no-backend property intact.
 - **Trustline awareness**: adding a payee who is paid in a non-native asset
@@ -46,9 +47,9 @@ Planned approach:
   endpoints, supported assets, and KYC requirements. New module
   `lib/anchors/toml.ts` + `lib/anchors/registry.ts`.
 - **SEP-24 interactive flow**: open the anchor's hosted deposit/withdraw
-  form in a redirect with a SEP-10 auth challenge signed by Freighter
-  (`lib/anchors/auth.ts` — the only new signing path, reusing
-  `wallet.signWithWallet()`'s bridge). Nyx stores the resulting transaction
+  form in a redirect with a SEP-10 auth challenge signed by the unlocked
+  local session (`lib/anchors/auth.ts` — the only new signing path, reusing
+  `session.signTransactionXdr()`). Nyx stores the resulting transaction
   id and shows anchor status by polling `/transaction` (respecting the
   10s minimum-interval rule).
 - **SEP-6 API flow** for anchors without interactive UIs, with typed

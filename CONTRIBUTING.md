@@ -10,9 +10,10 @@ contributors can start quickly.
 2. `npm ci` (dependencies are pinned to exact versions).
 3. `npm run dev` — the app runs against public testnet Horizon; no API keys
    needed.
-4. Install [Freighter](https://www.freighter.app/) if you want to exercise
-   the signing flows, and fund a testnet account with
-   [Friendbot](https://friendbot.stellar.org).
+4. On first visit Nyx takes you to **/create** to generate a wallet (no
+   browser extension needed). Fund the account with
+   [Friendbot](https://friendbot.stellar.org), or pick **Import an existing
+   secret key** to reuse a testnet account you already hold.
 
 ## Before opening a PR
 

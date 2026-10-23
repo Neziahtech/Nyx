@@ -19,7 +19,8 @@ Design commitments:
 - A `PaymentPlan` compiles to the existing `SendParams` in
   `lib/stellar/payments.ts` — bill pay is a scheduler around the same send
   path, not a second transaction pipeline.
-- Execution is always user-approved in Freighter. Nyx never signs
+- Execution is always user-approved: each due bill is confirmed on a review
+  card and signed locally only after that. Nyx never signs
   unattended, even for "auto-pay": the due queue batches review cards.
 - All schedule data stays on-device; no backend, no telemetry.
 - Timezone-safe cadence math (monthly-on-the-31st, DST weeks) lives in
