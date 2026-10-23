@@ -87,6 +87,6 @@ wallet for testnet, ready to grow into bill payments and fiat off-ramping.
   testnet testing checklist, roadmap, and a scoped issue backlog for
   outside contributors.
 
-[unreleased]: https://github.com/nyx-wallet/nyx/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/nyx-wallet/nyx/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/nyx-wallet/nyx/releases/tag/v0.1.0
+[unreleased]: https://github.com/Neziahtech/Nyx/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Neziahtech/Nyx/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/Neziahtech/Nyx/releases/tag/v0.1.0

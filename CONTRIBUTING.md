@@ -46,7 +46,7 @@ hooks auto-format staged files with Prettier and run ESLint fixes.
 
 ## Picking up an issue
 
-Look for [`good first issue`](https://github.com/nyx-wallet/nyx/labels/good%20first%20issue)
+Look for [`good first issue`](https://github.com/Neziahtech/Nyx/labels/good%20first%20issue)
 labels, or work items from [docs/backlog.md](docs/backlog.md). Comment on
 the issue to claim it. Each backlog item lists the files it touches and
 acceptance criteria so you can scope your work before starting.
